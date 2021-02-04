@@ -36,7 +36,7 @@ func LoginPage() {
 }
 
 // 登陆二维码
-func QrLoginImage() string {
+func QrLoginImage(filename string) string {
 	LoginPage()
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://qr.m.jd.com/show", url.Values{
 		"appid": {"133"}, "size": {"300"}, "t": {genTime()},
@@ -48,7 +48,7 @@ func QrLoginImage() string {
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
 	req.SetHeader("Referer", "https://passport.jd.com/new/login.aspx")
-	if err = req.ToFile("./jd_qr_code.png"); err != nil {
+	if err = req.ToFile(filename); err != nil {
 		log.Panicln("获取二维码失败")
 		return ""
 	}
@@ -63,7 +63,7 @@ func QrLoginImage() string {
 	}
 	if wlfstkSmdl != "" {
 		log.Println("二维码获取成功，请打开京东APP扫描")
-		util.OpenImage("./jd_qr_code.png")
+		util.OpenImage(filename)
 	}
 	return wlfstkSmdl
 }
@@ -259,12 +259,12 @@ func GetKillUrl(skuId string) string {
 }
 
 // 请求秒杀链接
-func RequestKillUrl(skuId, killUrl string) {
+func RequestKillUrl(skuId, killUrl string) bool {
 	log.Println("请求秒杀商品链接...")
 	req, err := dhttp.Get(killUrl)
 	if err != nil {
 		log.Println("请求秒杀商品链接失败", err.Error())
-		return
+		return false
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
@@ -275,18 +275,20 @@ func RequestKillUrl(skuId, killUrl string) {
 	defer resp.Body.Close()
 	if err == nil && resp.StatusCode == 200 {
 		log.Println("请求秒杀商品链接成功")
+		return true
 	}
+	return false
 }
 
 // 访问抢购订单结算页面
-func SeckillPage(skuId, skuNum string) {
+func SeckillPage(skuId, skuNum string) bool {
 	log.Println("访问抢购订单结算页面...")
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://marathon.jd.com/seckill/seckill.action", url.Values{
 		"sku": {skuId}, "num": {skuNum}, "rid": {genTime()},
 	}))
 	if err != nil {
 		log.Println("访问抢购订单结算页面失败", err.Error())
-		return
+		return false
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
@@ -297,8 +299,9 @@ func SeckillPage(skuId, skuNum string) {
 	defer resp.Body.Close()
 	if err == nil && resp.StatusCode == 200 {
 		log.Println("访问抢购订单结算页面成功")
+		return true
 	}
-
+	return false
 }
 
 // 提交订单
@@ -362,7 +365,7 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 	req.WriteParam(params)
 
 	type Ret struct {
-		Success      bool //todo 类型等待验证
+		Success      bool
 		ErrorMessage string
 		OrderId      string
 		ResultCode   string

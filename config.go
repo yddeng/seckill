@@ -6,13 +6,18 @@ import (
 	"time"
 )
 
+const (
+	CookieFilename  = "./my.cookies"
+	QrImageFilename = "./rq_code.png"
+)
+
 type Config struct {
 	EId string `toml:"eid"`
 	Fp  string `toml:"fp"`
 	PWD string `toml:"pwd"`
 
-	SkuId   int    `toml:"sku_id"`
-	SkuNum  int    `toml:"sku_num"`
+	SkuId   string `toml:"sku_id"`
+	SkuNum  string `toml:"sku_num"`
 	BuyTime string `toml:"buy_time"`
 }
 
@@ -41,7 +46,7 @@ func checkConfig(conf *Config) {
 	if conf.EId == "" || conf.Fp == "" {
 		log.Panicln("请填写eid，fp")
 	}
-	if conf.SkuId == 0 || conf.SkuNum == 0 {
+	if conf.SkuId == "" || conf.SkuNum == "" {
 		log.Panicln("请填写抢购的商品ID及数量")
 	}
 
