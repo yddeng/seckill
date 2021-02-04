@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Login() bool {
+func login() bool {
 	// 二维码
 	token := ""
 	util.LoopFunc(time.Second, func() bool {

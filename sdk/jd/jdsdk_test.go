@@ -23,3 +23,11 @@ func TestQrcodeTicket(t *testing.T) {
 
 	fmt.Println("ticket", ticket)
 }
+
+func TestGetServerTime(t *testing.T) {
+	nowTimeMs := time.Now().UnixNano() / 1e6
+	serverTimeMs := GetServerTime()
+	diffTime := serverTimeMs - nowTimeMs
+
+	fmt.Println(nowTimeMs, serverTimeMs, diffTime)
+}
