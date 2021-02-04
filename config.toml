@@ -1,11 +1,10 @@
-eid   = ":7856"
-fp    = "Test127.0.0.1"
+eid   = "YFTI6775AWYBWRDS5ZSKBIQUAKRZCPW6OE3BJM756JEVVFQZB6S5A4HYXZLSVWDLXLN6FRAIWPKCORCYGBGF6UOEWM"
+fp    = "e31999b267a4c3881e90efc722ce1e91"
 pwd   = ""
 
-
-# 已经是茅台的sku_id了
+# 商品ID
 sku_id = "100012043978"
 # 抢购数量
 sku_num = "2"
-# 设定时间 # 2020-12-09 10:00:00
+# 设定时间 2020-12-09 10:00:00
 buy_time = "2021-02-04 17:59:59"
