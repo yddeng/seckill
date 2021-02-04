@@ -216,6 +216,8 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 	var initData InitData
 	if err = req.ToJSON(&initData); err != nil {
+		//str, _ := req.ToString()
+		//log.Println("初始化秒杀信息失败\n", str)
 		log.Println("初始化秒杀信息失败", err.Error())
 		return nil, err
 	} else if len(initData.AddressList) == 0 {
@@ -245,8 +247,16 @@ func GetKillUrl(skuId string) string {
 	}
 
 	var r Ret
-	if err = req.ToJSON(&r); err != nil {
-		log.Println("获取秒杀商品链接失败, url为空")
+	if body, err := req.ToString(); err != nil {
+		log.Println("GetKillUrl", err.Error())
+		return ""
+	} else if err = json.Unmarshal([]byte(getCallbackStr(body)), &r); err != nil {
+		log.Println("GetKillUrl", err.Error())
+		return ""
+	}
+
+	if r.Url == "" {
+		log.Println("获取秒杀商品链接失败,url为空")
 		return ""
 	}
 

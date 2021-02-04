@@ -49,11 +49,6 @@ func GbkToUtf8(s []byte) ([]byte, error) {
 	return d, nil
 }
 
-func Sleep(dur time.Duration) {
-	timer := time.NewTimer(dur)
-	<-timer.C
-}
-
 func Go(num int, fn func(int)) {
 	for i := 1; i <= num; i++ {
 		id := i

@@ -8,7 +8,7 @@ import (
 
 const (
 	CookieFilename  = "./my.cookies"
-	QrImageFilename = "./rq_code.png"
+	QrImageFilename = "./qr_code.png"
 )
 
 type Config struct {

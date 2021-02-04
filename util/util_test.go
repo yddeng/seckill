@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func TestOpenImage(t *testing.T) {
+	OpenImage("./qr_code.png")
+}
+
 func TestWaitGoLoop(t *testing.T) {
 	f := func() int64 {
 		if rand.Int()%5 == 0 {

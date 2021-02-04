@@ -140,7 +140,7 @@ func Seckill() {
 	nowTimeMs := time.Now().UnixNano() / 1e6
 	if buyTimeMs-nowTimeMs > 60*1000 {
 		// 提前60s唤醒
-		util.Sleep(time.Millisecond * time.Duration(buyTimeMs-nowTimeMs-60*1000))
+		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-nowTimeMs-60*1000))
 		// 检查过期
 		if !jd.ValidCookie() {
 			log.Println("cookie过期")
@@ -150,7 +150,7 @@ func Seckill() {
 
 	diffTime := getDiffTimeMs()
 	log.Println(fmt.Sprintf("等待到达设定时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
-	util.Sleep(time.Duration(buyTimeMs-diffTime) * time.Millisecond)
+	time.Sleep(time.Duration(buyTimeMs-diffTime) * time.Millisecond)
 
 	log.Println("时间到达，开始执行……")
 	seckillSku(config.SkuId, config.SkuNum)
