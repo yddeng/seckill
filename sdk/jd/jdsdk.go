@@ -54,15 +54,7 @@ func QrLoginImage(filename string) string {
 		return ""
 	}
 
-	cookies := req.HttpResponse().Cookies()
-	wlfstkSmdl := ""
-	for _, cookie := range cookies {
-		if cookie.Name == "wlfstk_smdl" {
-			wlfstkSmdl = cookie.Value
-			break
-		}
-	}
-	return wlfstkSmdl
+	return sdk.GetCookie("wlfstk_smdl")
 }
 
 // 登陆扫码检测
@@ -226,7 +218,7 @@ func GetProductInfo(skuId string) string {
 	}
 }
 
-// 加入购物车
+// 加入购物车 ok
 func InitCart(pid, pcount string) bool {
 	// https://cart.jd.com/addToCart.html?rcd=1&pid=100015185396&pc=1&eb=1&rid=1612494295861&em=
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://cart.jd.com/gate.action", url.Values{
@@ -251,6 +243,7 @@ func InitCart(pid, pcount string) bool {
 	return true
 }
 
+// 查看购物车
 func CartIndex() {
 	req, err := dhttp.Get("https://cart.jd.com/cart_index/")
 	if err != nil {
@@ -267,6 +260,91 @@ func CartIndex() {
 		fmt.Println(body)
 	}
 }
+
+// 购物车订单 cookie中设置ipLoc-djd
+func GetOrderInfo() {
+	req, err := dhttp.Get("https://trade.jd.com/shopping/order/getOrderInfo.action")
+	if err != nil {
+		return
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Host", "trade.jd.com")
+	req.SetHeader("Referer", "https://cart.jd.com/cart_index/")
+	req.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+
+	if body, err := req.ToString(); err != nil {
+		return
+	} else {
+		fmt.Println(body)
+	}
+}
+
+// 提交订单 返回orderId
+func SubmitOrder(eid, fp string) string {
+	req, err := dhttp.NewRequest(dhttp.BuildURLParams("https://trade.jd.com/shopping/order/submitOrder.action", url.Values{
+		//"orderId": {orderId}, "areaId": {areaId}, "rId": {genTime()},
+	}), "POST")
+	if err != nil {
+		log.Println("SubmitOrder1", err.Error())
+		return ""
+	}
+	params := url.Values{
+		"overseaPurchaseCookies":             {""},
+		"vendorRemarks":                      {"[]"},
+		"submitOrderParam.sopNotPutInvoice":  {"false"},
+		"submitOrderParam.trackID":           {"TestTrackId"},
+		"submitOrderParam.ignorePriceChange": {"0"},
+		"submitOrderParam.btSupport":         {"0"},
+		"submitOrderParam.eid":               {eid},
+		"submitOrderParam.fp":                {fp},
+		"submitOrderParam.jxj":               {"1"},
+	}
+	req.WriteParam(params)
+
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Referer", "https://trade.jd.com/shopping/order/getOrderInfo.action")
+	req.SetHeader("Host", "trade.jd.com")
+	req.SetHeader("Origin", "https://trade.jd.com")
+
+	type Ret struct {
+		OrderId string
+	}
+	var r Ret
+	if err = req.ToJSON(&r); err != nil {
+		log.Println("SubmitOrder2", err.Error())
+		return ""
+	}
+	return r.OrderId
+
+}
+
+// 确认订单 areadId为cookie中的ipLoc-djd的值，
+func SuccessSubmitOrder(orderId, areaId string) bool {
+	req, err := dhttp.Get(dhttp.BuildURLParams("https://success.jd.com/success/success.action", url.Values{
+		"orderId": {orderId}, "areaId": {areaId}, "rId": {genTime()},
+	}))
+	if err != nil {
+		log.Println("CartSubmitOrder1", err.Error())
+		return false
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Referer", "https://trade.jd.com/shopping/order/getOrderInfo.action")
+	req.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	req.SetHeader("Host", "cart.jd.com")
+
+	if body, err := req.ToString(); err != nil {
+		log.Println("CartSubmitOrder2", err.Error())
+		return false
+	} else {
+		fmt.Println(body)
+		return true
+	}
+}
+
+/* ******* 秒杀 ******** */
 
 // 获取秒杀商品信息
 func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {

@@ -26,6 +26,17 @@ func init() {
 	}
 }
 
+func GetCookie(name string) string {
+	for _, tld := range CookieJar.ETLDsPlus1(nil) {
+		for _, cookie := range CookieJar.Entries(tld, nil) {
+			if cookie.Name == name {
+				return cookie.Value
+			}
+		}
+	}
+	return ""
+}
+
 func SaveCookie(filename string) {
 	cookies := make(map[string]cookiejar.Entry)
 	for _, tld := range CookieJar.ETLDsPlus1(nil) {
