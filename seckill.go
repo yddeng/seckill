@@ -14,7 +14,7 @@ func cookieLogin() bool {
 	if util.Exists(CookieFilename) {
 		sdk.LoadCookie(CookieFilename)
 		if jd.ValidCookie() {
-			nickName := jd.GetUserInfo()
+			nickName := jd.GetUserNickname()
 			log.Println(nickName, "本地cookie 登录成功")
 			return true
 		}
@@ -48,7 +48,7 @@ func login() bool {
 	// 保存cookie
 	sdk.SaveCookie(CookieFilename)
 
-	nickName := jd.GetUserInfo()
+	nickName := jd.GetUserNickname()
 	log.Println("用户:", nickName, "登陆成功")
 	return true
 }

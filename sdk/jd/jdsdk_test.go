@@ -43,14 +43,18 @@ func TestGetKillUrl(t *testing.T) {
 	fmt.Println(killUrl)
 }
 
-func TestGetUserInfo(t *testing.T) {
+func TestGetUserNickname(t *testing.T) {
+	nickName := GetUserNickname()
+	fmt.Println("nickName", nickName)
+
 	sdk.LoadCookie("./my.cookies")
-	nickName := GetUserInfo()
+	nickName = GetUserNickname()
 	fmt.Println("nickName", nickName)
 }
 
 func TestGetSeckillInitInfo(t *testing.T) {
-	initData, err := GetSeckillInitInfo("100012043978", "1")
+	//initData, err := GetSeckillInitInfo("100012043978", "1")
+	initData, err := GetSeckillInitInfo("50501217451", "1")
 	if err != nil {
 		fmt.Println(err)
 		return

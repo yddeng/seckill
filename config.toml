@@ -1,5 +1,12 @@
+
+
+# 必填。随便找一个商品下单，然后进入结算页面，打开浏览器的调试窗口，切换到控制台Tab页，在控制台输入`eid`，获取eid。
 eid   = "YFTI6775AWYBWRDS5ZSKBIQUAKRZCPW6OE3BJM756JEVVFQZB6S5A4HYXZLSVWDLXLN6FRAIWPKCORCYGBGF6UOEWM"
+
+# 必填。随便找一个商品下单，然后进入结算页面，打开浏览器的调试窗口，切换到控制台Tab页，在控制台输入`fp`，获取eid。
 fp    = "e31999b267a4c3881e90efc722ce1e91"
+
+# 支付密码，可不填，待抢购成功，手动打开订单页面支付。
 pwd   = ""
 
 # 商品ID
@@ -7,4 +14,4 @@ sku_id = "100012043978"
 # 抢购数量
 sku_num = "2"
 # 设定时间 2020-12-09 10:00:00
-buy_time = "2021-02-04 17:59:59"
+buy_time = "2021-02-05 12:00:00"

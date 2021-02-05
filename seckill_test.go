@@ -12,3 +12,8 @@ func TestLogin(t *testing.T) {
 func TestCookieLogin(t *testing.T) {
 	fmt.Println(cookieLogin())
 }
+
+func TestSeckillSku(t *testing.T) {
+	LoadConfig("./config.toml")
+	seckillSku("100012043978", "1")
+}

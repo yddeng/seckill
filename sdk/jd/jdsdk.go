@@ -131,7 +131,7 @@ func ValidQRTicket(ticket string) bool {
 }
 
 // 获取用户数据
-func GetUserInfo() string {
+func GetUserNickname() string {
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://passport.jd.com/user/petName/getUserInfoForMiniJd.action", url.Values{
 		"callback": {genCallback()}, "_": {genTime()},
 	}))
@@ -144,20 +144,30 @@ func GetUserInfo() string {
 	req.SetHeader("Referer", "https://order.jd.com/center/list.action")
 
 	type Ret struct {
-		NickName string
+		NickName    string
+		RealName    string
+		UserScoreVO struct {
+			FinanceScore int // 金融分数
+			TotalScore   int // 分数
+		}
 	}
 
 	var r Ret
 	if body, err := req.ToString(); err != nil {
 		log.Panicln("GetUserInfo2", err.Error())
 		return ""
-	} else if err = json.Unmarshal([]byte(getCallbackStr(body)), &r); err != nil {
+	} else if b, err := util.GbkToUtf8([]byte(getCallbackStr(body))); err != nil {
 		log.Panicln("GetUserInfo3", err.Error())
+		return ""
+	} else if err = json.Unmarshal(b, &r); err != nil {
+		log.Panicln("GetUserInfo4", err.Error())
 		return ""
 	}
 
-	b, _ := util.GbkToUtf8([]byte(r.NickName))
-	return string(b)
+	if r.NickName != "" {
+		log.Printf("UserInfo<NickName：%s, RealName：%s, FinanceScore：%d>\n", r.NickName, r.RealName, r.UserScoreVO.FinanceScore)
+	}
+	return r.NickName
 }
 
 // 验证cookie
@@ -200,7 +210,14 @@ func GetServerTime() int64 {
 	return r.ServerTime
 }
 
-// 获取商品信息
+/* ************* 商品相关 ******************** */
+
+//获取商品信息
+func GetProductInfo(skuId string) {
+
+}
+
+// 获取秒杀商品信息
 func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 	log.Println("获取秒杀商品初始化信息...")
 	req, err := dhttp.NewRequest("https://marathon.jd.com/seckillnew/orderService/pc/init.action", "POST")
@@ -216,8 +233,8 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 	var initData InitData
 	if err = req.ToJSON(&initData); err != nil {
-		//str, _ := req.ToString()
-		//log.Println("初始化秒杀信息失败\n", str)
+		str, _ := req.ToString()
+		log.Println("初始化秒杀信息失败\n", str)
 		log.Println("初始化秒杀信息失败", err.Error())
 		return nil, err
 	} else if len(initData.AddressList) == 0 {
@@ -377,19 +394,20 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 	type Ret struct {
 		Success      bool
 		ErrorMessage string
-		OrderId      string
-		ResultCode   string
-		TotalMoney   string
+		OrderId      int
+		ResultCode   int
+		TotalMoney   float32
 		PcUrl        string
 	}
 
 	var r Ret
 	if err = req.ToJSON(&r); err != nil {
-		log.Println("提交商品订单失败2", err.Error())
+		str, _ := req.ToString()
+		log.Println("提交商品订单失败2", str, err.Error())
 		return false
 	}
 	if r.Success {
-		log.Println(fmt.Sprintf("抢购成功，订单号:%s, 总价:%s, 电脑端付款链接:%s", r.OrderId, r.TotalMoney, r.PcUrl))
+		log.Println(fmt.Sprintf("抢购成功，订单号:%d, 总价:%f, 电脑端付款链接:%s", r.OrderId, r.TotalMoney, r.PcUrl))
 	}
 	return r.Success
 }

@@ -2,4 +2,4 @@
 
 ### 启动
 
-`go run main/main.go`
+`go run main/seckill.go`
