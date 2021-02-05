@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/yddeng/dnet/dhttp"
 	"github.com/yddeng/seckill/sdk"
 	"github.com/yddeng/seckill/util"
@@ -32,7 +33,7 @@ func getCallbackStr(text string) string {
 // 登录页面
 func LoginPage() {
 	req, _ := dhttp.Get("https://passport.jd.com/new/login.aspx")
-	_, _ = req.ToBytes()
+	req.DoEnd()
 }
 
 // 登陆二维码
@@ -42,14 +43,14 @@ func QrLoginImage(filename string) string {
 		"appid": {"133"}, "size": {"300"}, "t": {genTime()},
 	}))
 	if err != nil {
-		log.Panicln("QrLoginImage", err.Error())
+		log.Println("QrLoginImage1", err.Error())
 		return ""
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
 	req.SetHeader("Referer", "https://passport.jd.com/new/login.aspx")
 	if err = req.ToFile(filename); err != nil {
-		log.Panicln("获取二维码失败")
+		log.Println("QrLoginImage2", err.Error())
 		return ""
 	}
 
@@ -61,10 +62,6 @@ func QrLoginImage(filename string) string {
 			break
 		}
 	}
-	if wlfstkSmdl != "" {
-		log.Println("二维码获取成功，请打开京东APP扫描")
-		util.OpenImage(filename)
-	}
 	return wlfstkSmdl
 }
 
@@ -74,7 +71,7 @@ func QrcodeTicket(token string) string {
 		"appid": {"133"}, "callback": {genCallback()}, "token": {token}, "_": {genTime()},
 	}))
 	if err != nil {
-		log.Panicln("QrcodeTicket1", err.Error())
+		log.Println("QrcodeTicket1", err.Error())
 		return ""
 	}
 	req.Client = sdk.HttpClient
@@ -89,10 +86,10 @@ func QrcodeTicket(token string) string {
 
 	var r Ret
 	if body, err := req.ToString(); err != nil {
-		log.Panicln("QrcodeTicket2", err.Error())
+		log.Println("QrcodeTicket2", err.Error())
 		return ""
 	} else if err = json.Unmarshal([]byte(getCallbackStr(body)), &r); err != nil {
-		log.Panicln("QrcodeTicket3", err.Error())
+		log.Println("QrcodeTicket3", err.Error())
 		return ""
 	}
 
@@ -100,7 +97,6 @@ func QrcodeTicket(token string) string {
 		log.Printf("Code: %d, Message: %s", r.Code, r.Msg)
 		return ""
 	}
-	log.Println("已完成手机客户端确认")
 	return r.Ticket
 }
 
@@ -110,7 +106,7 @@ func ValidQRTicket(ticket string) bool {
 		"t": {ticket},
 	}))
 	if err != nil {
-		log.Panicln("ValidQRTicket1", err.Error())
+		log.Println("ValidQRTicket1", err.Error())
 		return false
 	}
 	req.Client = sdk.HttpClient
@@ -123,7 +119,7 @@ func ValidQRTicket(ticket string) bool {
 	}
 	var r Ret
 	if err = req.ToJSON(&r); err != nil {
-		log.Panicln("ValidQRTicket1", err.Error())
+		log.Println("ValidQRTicket2", err.Error())
 		return false
 	}
 
@@ -136,7 +132,7 @@ func GetUserNickname() string {
 		"callback": {genCallback()}, "_": {genTime()},
 	}))
 	if err != nil {
-		log.Panicln("GetUserInfo1", err.Error())
+		log.Println("GetUserInfo1", err.Error())
 		return ""
 	}
 	req.Client = sdk.HttpClient
@@ -154,13 +150,13 @@ func GetUserNickname() string {
 
 	var r Ret
 	if body, err := req.ToString(); err != nil {
-		log.Panicln("GetUserInfo2", err.Error())
+		log.Println("GetUserInfo2", err.Error())
 		return ""
 	} else if b, err := util.GbkToUtf8([]byte(getCallbackStr(body))); err != nil {
-		log.Panicln("GetUserInfo3", err.Error())
+		log.Println("GetUserInfo3", err.Error())
 		return ""
 	} else if err = json.Unmarshal(b, &r); err != nil {
-		log.Panicln("GetUserInfo4", err.Error())
+		log.Println("GetUserInfo4", err.Error())
 		return ""
 	}
 
@@ -176,15 +172,15 @@ func ValidCookie() bool {
 		"rid": {genTime()},
 	}))
 	if err != nil {
-		log.Panicln("ValidCookie", err.Error())
+		log.Println("ValidCookie1", err.Error())
 		return false
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
 
 	resp, err := req.Do()
-	defer resp.Body.Close()
 	if err == nil && resp.StatusCode == 200 {
+		defer resp.Body.Close()
 		return true
 	}
 	return false
@@ -196,7 +192,7 @@ func ValidCookie() bool {
 func GetServerTime() int64 {
 	req, err := dhttp.Get("https://a.jd.com//ajax/queryServerData.html")
 	if err != nil {
-		log.Panicln("GetServerTime", err.Error())
+		log.Println("GetServerTime1", err.Error())
 		return 0
 	}
 	type Ret struct {
@@ -204,7 +200,7 @@ func GetServerTime() int64 {
 	}
 	var r Ret
 	if err = req.ToJSON(&r); err != nil {
-		log.Panicln("获取京东服务器时间失败", err.Error())
+		log.Println("GetServerTime2", err.Error())
 		return 0
 	}
 	return r.ServerTime
@@ -213,16 +209,70 @@ func GetServerTime() int64 {
 /* ************* 商品相关 ******************** */
 
 //获取商品信息
-func GetProductInfo(skuId string) {
+func GetProductInfo(skuId string) string {
+	req, err := dhttp.Get(fmt.Sprintf("https://item.jd.com/%s.html", skuId))
+	if err != nil {
+		return ""
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
 
+	if body, err := req.ToString(); err != nil {
+		return ""
+	} else {
+		html := strings.NewReader(body)
+		doc, _ := goquery.NewDocumentFromReader(html)
+		return strings.TrimSpace(doc.Find(".sku-name").Text())
+	}
+}
+
+// 加入购物车
+func InitCart(pid, pcount string) bool {
+	// https://cart.jd.com/addToCart.html?rcd=1&pid=100015185396&pc=1&eb=1&rid=1612494295861&em=
+	req, err := dhttp.Get(dhttp.BuildURLParams("https://cart.jd.com/gate.action", url.Values{
+		"pid": {pid}, "pcount": {pcount}, "ptype": {"1"},
+		//"rcd": {"1"}, "pid": {pid}, "pc": {"1"}, "eb": {"1"}, "rid": {"1612494295861"}, "em": {""},
+	}))
+	if err != nil {
+		log.Println("GetSeckillInitInfo", err.Error())
+		return false
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", pid))
+	req.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	req.SetHeader("Host", "cart.jd.com")
+
+	str, err := req.ToString()
+	if err != nil {
+		return false
+	}
+	log.Println(str)
+	return true
+}
+
+func CartIndex() {
+	req, err := dhttp.Get("https://cart.jd.com/cart_index/")
+	if err != nil {
+		return
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Host", "cart.jd.com")
+	req.SetHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+
+	if body, err := req.ToString(); err != nil {
+		return
+	} else {
+		fmt.Println(body)
+	}
 }
 
 // 获取秒杀商品信息
 func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
-	log.Println("获取秒杀商品初始化信息...")
 	req, err := dhttp.NewRequest("https://marathon.jd.com/seckillnew/orderService/pc/init.action", "POST")
 	if err != nil {
-		log.Panicln("GetSeckillInitInfo", err.Error())
+		log.Println("GetSeckillInitInfo1", err.Error())
 		return nil, err
 	}
 	req.Client = sdk.HttpClient
@@ -231,14 +281,11 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 	req.WriteParam(url.Values{"sku": {skuId}, "num": {skuNum}, "isModifyAddress": {"false"}})
 
-	str, _ := req.ToString()
-	log.Println("---\n", str)
 	var initData InitData
 	if err = req.ToJSON(&initData); err != nil {
-		log.Println("初始化秒杀信息失败", err.Error())
+		log.Println("GetSeckillInitInfo2", err.Error())
 		return nil, err
 	} else if len(initData.AddressList) == 0 {
-		log.Println("初始化秒杀信息失败, AddressList为空")
 		return nil, errors.New("初始化秒杀信息失败, AddressList为空")
 	}
 	return &initData, nil
@@ -246,12 +293,11 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 // 获取秒杀链接
 func GetKillUrl(skuId string) string {
-	log.Println("获取秒杀商品链接...")
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://itemko.jd.com/itemShowBtn", url.Values{
 		"skuId": {skuId}, "callback": {genCallback()}, "from": {"pc"}, "_": {genTime()},
 	}))
 	if err != nil {
-		log.Println("获取秒杀商品链接失败", err.Error())
+		log.Println("GetKillUrl1", err.Error())
 		return ""
 	}
 	req.Client = sdk.HttpClient
@@ -263,19 +309,16 @@ func GetKillUrl(skuId string) string {
 		Url string
 	}
 
-	str, _ := req.ToString()
-	log.Println("---\n", str)
 	var r Ret
 	if body, err := req.ToString(); err != nil {
-		log.Println("GetKillUrl", err.Error())
+		log.Println("GetKillUrl2", err.Error())
 		return ""
 	} else if err = json.Unmarshal([]byte(getCallbackStr(body)), &r); err != nil {
-		log.Println("GetKillUrl", err.Error())
+		log.Println("GetKillUrl3", err.Error())
 		return ""
 	}
 
 	if r.Url == "" {
-		log.Println("获取秒杀商品链接失败,url为空")
 		return ""
 	}
 
@@ -283,16 +326,14 @@ func GetKillUrl(skuId string) string {
 	url := strings.ReplaceAll(r.Url, "divide", "marathon")
 	//https://marathon.jd.com/captcha.html?skuId=8654289&sn=c3f4ececd8461f0e4d7267e96a91e0e0&from=pc
 	url = strings.ReplaceAll(url, "user_routing", "captcha.html")
-	log.Println("获取秒杀商品链接成功", url)
-	return url
+	return "https" + url
 }
 
 // 请求秒杀链接
 func RequestKillUrl(skuId, killUrl string) bool {
-	log.Println("请求秒杀商品链接...")
 	req, err := dhttp.Get(killUrl)
 	if err != nil {
-		log.Println("请求秒杀商品链接失败", err.Error())
+		log.Println("RequestKillUrl1", err.Error())
 		return false
 	}
 	req.Client = sdk.HttpClient
@@ -301,9 +342,8 @@ func RequestKillUrl(skuId, killUrl string) bool {
 	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", skuId))
 
 	resp, err := req.Do()
-	defer resp.Body.Close()
 	if err == nil && resp.StatusCode == 200 {
-		log.Println("请求秒杀商品链接成功")
+		defer resp.Body.Close()
 		return true
 	}
 	return false
@@ -311,12 +351,11 @@ func RequestKillUrl(skuId, killUrl string) bool {
 
 // 访问抢购订单结算页面
 func SeckillPage(skuId, skuNum string) bool {
-	log.Println("访问抢购订单结算页面...")
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://marathon.jd.com/seckill/seckill.action", url.Values{
 		"sku": {skuId}, "num": {skuNum}, "rid": {genTime()},
 	}))
 	if err != nil {
-		log.Println("访问抢购订单结算页面失败", err.Error())
+		log.Println("SeckillPage1", err.Error())
 		return false
 	}
 	req.Client = sdk.HttpClient
@@ -325,9 +364,8 @@ func SeckillPage(skuId, skuNum string) bool {
 	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", skuId))
 
 	resp, err := req.Do()
-	defer resp.Body.Close()
 	if err == nil && resp.StatusCode == 200 {
-		log.Println("访问抢购订单结算页面成功")
+		defer resp.Body.Close()
 		return true
 	}
 	return false
@@ -335,10 +373,9 @@ func SeckillPage(skuId, skuNum string) bool {
 
 // 提交订单
 func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) bool {
-	log.Println("提交商品订单...")
 	req, err := dhttp.NewRequest(dhttp.BuildURLParams("https://marathon.jd.com/seckill/seckill.action", url.Values{"skuId": {skuId}}), "POST")
 	if err != nil {
-		log.Println("提交商品订单失败", err.Error())
+		log.Println("SubmitSeckillOrder1", err.Error())
 		return false
 	}
 	req.Client = sdk.HttpClient
@@ -402,13 +439,10 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 		PcUrl        string
 	}
 
-	str, _ := req.ToString()
-	log.Println("---\n", str)
-
 	var r Ret
 	if err = req.ToJSON(&r); err != nil {
 		str, _ := req.ToString()
-		log.Println("提交商品订单失败2", str, err.Error())
+		log.Println("SubmitSeckillOrder2", str, err.Error())
 		return false
 	}
 	if r.Success {

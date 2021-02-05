@@ -52,6 +52,19 @@ func TestGetUserNickname(t *testing.T) {
 	fmt.Println("nickName", nickName)
 }
 
+func TestInitCart(t *testing.T) {
+	sdk.LoadCookie("./my.cookies")
+	fmt.Println(InitCart("100015185396", "1"))
+
+	// 茅台
+	fmt.Println(InitCart("100012043978", "1"))
+}
+
+func TestCartIndex(t *testing.T) {
+	sdk.LoadCookie("./my.cookies")
+	CartIndex()
+}
+
 func TestGetSeckillInitInfo(t *testing.T) {
 	//initData, err := GetSeckillInitInfo("100012043978", "1")
 	initData, err := GetSeckillInitInfo("100009619287", "1")
