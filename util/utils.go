@@ -92,6 +92,10 @@ func Exists(path string) bool {
 	return true
 }
 
+func GetNowTimeMs() int64 {
+	return time.Now().UnixNano() / 1e6
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }

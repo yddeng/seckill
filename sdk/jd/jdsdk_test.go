@@ -54,7 +54,7 @@ func TestGetUserNickname(t *testing.T) {
 
 func TestGetSeckillInitInfo(t *testing.T) {
 	//initData, err := GetSeckillInitInfo("100012043978", "1")
-	initData, err := GetSeckillInitInfo("50501217451", "1")
+	initData, err := GetSeckillInitInfo("100009619287", "1")
 	if err != nil {
 		fmt.Println(err)
 		return

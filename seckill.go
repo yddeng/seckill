@@ -56,7 +56,7 @@ func login() bool {
 func seckillSku(skuId, skuNum string) {
 	goNum := runtime.NumCPU()
 	// 结束时间
-	endTime := time.Now().Add(time.Second * 5)
+	endTime := time.Now().Add(time.Second * 10)
 
 	log.Println(" -- SeckillSku Step 1 -- ")
 	killUrl := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
@@ -136,21 +136,23 @@ func Seckill() {
 		login()
 	}
 
+	log.Println(fmt.Sprintf("等待到达抢购时间:%s", config.BuyTime))
+
 	buyTimeMs := config.GetBuyTimeMs()
-	nowTimeMs := time.Now().UnixNano() / 1e6
-	if buyTimeMs-nowTimeMs > 60*1000 {
+	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
-		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-nowTimeMs-60*1000))
+		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-util.GetNowTimeMs()-60*1000))
 		// 检查过期
 		if !jd.ValidCookie() {
-			log.Println("cookie过期")
+			log.Println("cookie过期, 请重新登陆！")
 			return
 		}
 	}
 
 	diffTime := getDiffTimeMs()
-	log.Println(fmt.Sprintf("等待到达设定时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
-	time.Sleep(time.Duration(buyTimeMs-diffTime) * time.Millisecond)
+	log.Println(fmt.Sprintf("等待到达抢购时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
+	// 提前500毫秒执行
+	time.Sleep(time.Duration(buyTimeMs-diffTime-util.GetNowTimeMs()-500) * time.Millisecond)
 
 	log.Println("时间到达，开始执行……")
 	seckillSku(config.SkuId, config.SkuNum)

@@ -231,10 +231,10 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 	req.WriteParam(url.Values{"sku": {skuId}, "num": {skuNum}, "isModifyAddress": {"false"}})
 
+	str, _ := req.ToString()
+	log.Println("---\n", str)
 	var initData InitData
 	if err = req.ToJSON(&initData); err != nil {
-		str, _ := req.ToString()
-		log.Println("初始化秒杀信息失败\n", str)
 		log.Println("初始化秒杀信息失败", err.Error())
 		return nil, err
 	} else if len(initData.AddressList) == 0 {
@@ -263,6 +263,8 @@ func GetKillUrl(skuId string) string {
 		Url string
 	}
 
+	str, _ := req.ToString()
+	log.Println("---\n", str)
 	var r Ret
 	if body, err := req.ToString(); err != nil {
 		log.Println("GetKillUrl", err.Error())
@@ -399,6 +401,9 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 		TotalMoney   float32
 		PcUrl        string
 	}
+
+	str, _ := req.ToString()
+	log.Println("---\n", str)
 
 	var r Ret
 	if err = req.ToJSON(&r); err != nil {
