@@ -5,29 +5,29 @@ import (
 	"github.com/yddeng/seckill/sdk"
 	"github.com/yddeng/seckill/sdk/jd"
 	"github.com/yddeng/seckill/util"
-	"log"
 	"os"
 	"runtime"
+	"teacher/node/common/logger"
 	"time"
 )
 
 func cookieLogin() bool {
 	if util.Exists(CookieFilename) {
-		log.Println("验证本地cookie...")
+		logger.Infoln("验证本地cookie...")
 		sdk.LoadCookie(CookieFilename)
 		if jd.ValidCookie() {
 			nickName := jd.GetUserNickname()
-			log.Println(nickName, "本地cookie 登录成功")
+			logger.Infoln(nickName, "本地cookie 登录成功")
 			return true
 		}
-		log.Println("本地cookie 过期")
+		logger.Infoln("本地cookie 过期")
 		return false
 	}
 	return false
 }
 
-func login() bool {
-	log.Println("用户登陆流程...")
+func loggerin() bool {
+	logger.Infoln("用户登陆流程...")
 	// 二维码
 	token := ""
 	util.LoopFunc(func() bool {
@@ -35,7 +35,7 @@ func login() bool {
 		return token != ""
 	}, time.Second)
 
-	log.Println("二维码获取成功，请打开京东APP扫描")
+	logger.Infoln("二维码获取成功，请打开京东APP扫描")
 	util.OpenImage(QrImageFilename)
 
 	// 检查二维码扫描状态
@@ -45,11 +45,11 @@ func login() bool {
 		return ticket != ""
 	}, time.Second*2)
 
-	log.Println("已完成手机客户端确认")
+	logger.Infoln("已完成手机客户端确认")
 
 	// 检验登陆状态
 	if !jd.ValidQRTicket(ticket) || !jd.ValidCookie() {
-		log.Println("登录失败")
+		logger.Infoln("登录失败")
 		return false
 	}
 
@@ -57,24 +57,24 @@ func login() bool {
 	sdk.SaveCookie(CookieFilename)
 
 	nickName := jd.GetUserNickname()
-	log.Println("用户:", nickName, "登陆成功")
+	logger.Infoln("用户:", nickName, "登陆成功")
 	return true
 }
 
 func seckillSku(skuId, skuNum string) {
-	log.Println("执行秒杀抢购流程...")
+	logger.Infoln("执行秒杀抢购流程...")
 	goNum := runtime.NumCPU()
 	// 结束时间
 	endTime := time.Now().Add(time.Second * 60)
 
 	exitFunc := func(i interface{}) {
 		if i == nil {
-			log.Println("任务超时，程序结束")
+			logger.Infoln("任务超时，程序结束")
 			os.Exit(0)
 		}
 	}
 
-	log.Println("Step1 -- 获取秒杀链接... ")
+	logger.Infoln("Step1 -- 获取秒杀链接... ")
 	killUrl := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		killUrl := jd.GetKillUrl(skuId)
 		if killUrl != "" {
@@ -84,8 +84,9 @@ func seckillSku(skuId, skuNum string) {
 		return false
 	})
 	exitFunc(killUrl)
+	logger.Infoln("Step1 --", killUrl)
 
-	log.Println("Step2 -- 请求秒杀商品链接... ")
+	logger.Infoln("Step2 -- 请求秒杀商品链接... ")
 	killUrlReq := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		ok := jd.RequestKillUrl(skuId, killUrl.(string))
 		if ok {
@@ -95,8 +96,9 @@ func seckillSku(skuId, skuNum string) {
 		return false
 	})
 	exitFunc(killUrlReq)
+	logger.Infoln("Step2 -- OK")
 
-	log.Println("Step3 -- 访问抢购订单结算页面... ")
+	logger.Infoln("Step3 -- 访问抢购订单结算页面... ")
 	seckillPageReq := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		ok := jd.SeckillPage(skuId, killUrl.(string))
 		if ok {
@@ -106,8 +108,9 @@ func seckillSku(skuId, skuNum string) {
 		return false
 	})
 	exitFunc(seckillPageReq)
+	logger.Infoln("Step3 -- OK")
 
-	log.Println("Step4 -- 获取秒杀商品初始化信息... ")
+	logger.Infoln("Step4 -- 获取秒杀商品初始化信息... ")
 	initData := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		initData, err := jd.GetSeckillInitInfo(skuId, skuNum)
 		if err == nil {
@@ -117,12 +120,16 @@ func seckillSku(skuId, skuNum string) {
 		return false
 	})
 	exitFunc(initData)
+	logger.Infoln("Step4 --", initData)
 
-	log.Println("Step5 -- 提交秒杀商品订单... ")
+	logger.Infoln("Step5 -- 提交秒杀商品订单... ")
 	util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		jd.SubmitSeckillOrder(config.EId, config.Fp, skuId, skuNum, config.PWD, initData.(*jd.InitData))
 		return false
 	})
+	logger.Infoln("Step5 -- OK")
+
+	logger.Infoln("All Steps OK")
 }
 
 func getDiffTimeMs() int64 {
@@ -139,25 +146,25 @@ func getDiffTimeMs() int64 {
 
 func Seckill() {
 
-	if !cookieLogin() && !login() {
-		log.Println("用户登陆失败！！")
+	if !cookieLogin() && !loggerin() {
+		logger.Infoln("用户登陆失败！！")
 		return
 	}
 
 	buyTimeMs := config.GetBuyTimeMs()
 	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
-		log.Println(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", config.BuyTime))
+		logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", config.BuyTime))
 		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-util.GetNowTimeMs()-60*1000))
 		// 检查过期
 		if !jd.ValidCookie() {
-			log.Println("cookie过期, 请重新登陆！")
+			logger.Infoln("cookie过期, 请重新登陆！")
 			return
 		}
 	}
 
 	diffTime := getDiffTimeMs()
-	log.Println(fmt.Sprintf("等待到达抢购时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
+	logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
 	// 提前500毫秒执行
 	time.Sleep(time.Duration(buyTimeMs-diffTime-util.GetNowTimeMs()-500) * time.Millisecond)
 

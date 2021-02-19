@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	seckill.InitLogger("log", "seckill")
+
 	seckill.LoadConfig("./config.toml")
 
 	seckill.Seckill()
