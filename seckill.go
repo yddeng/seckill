@@ -65,7 +65,7 @@ func seckillSku(skuId, skuNum string) {
 	log.Println("执行秒杀抢购流程...")
 	goNum := runtime.NumCPU()
 	// 结束时间
-	endTime := time.Now().Add(time.Second * 10)
+	endTime := time.Now().Add(time.Second * 60)
 
 	exitFunc := func(i interface{}) {
 		if i == nil {
@@ -147,7 +147,7 @@ func Seckill() {
 	buyTimeMs := config.GetBuyTimeMs()
 	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
-		log.Println(fmt.Sprintf("等待到达抢购时间:%s", config.BuyTime))
+		log.Println(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", config.BuyTime))
 		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-util.GetNowTimeMs()-60*1000))
 		// 检查过期
 		if !jd.ValidCookie() {

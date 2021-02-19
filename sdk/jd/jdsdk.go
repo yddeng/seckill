@@ -131,6 +131,7 @@ func GetUserNickname() string {
 	req.SetHeader("User-Agent", sdk.UserAgent)
 	req.SetHeader("Referer", "https://order.jd.com/center/list.action")
 
+	//# jQuery2381773({"imgUrl":"//storage.360buyimg.com/i.imageUpload/xxx.jpg","lastLoginTime":"","nickName":"xxx","plusStatus":"0","realName":"xxx","userLevel":x,"userScoreVO":{"accountScore":xx,"activityScore":xx,"consumptionScore":xxxxx,"default":false,"financeScore":xxx,"pin":"xxx","riskScore":x,"totalScore":xxxxx}})
 	type Ret struct {
 		NickName    string
 		RealName    string
@@ -346,29 +347,6 @@ func SuccessSubmitOrder(orderId, areaId string) bool {
 
 /* ******* 秒杀 ******** */
 
-// 获取秒杀商品信息
-func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
-	req, err := dhttp.NewRequest("https://marathon.jd.com/seckillnew/orderService/pc/init.action", "POST")
-	if err != nil {
-		log.Println("GetSeckillInitInfo1", err.Error())
-		return nil, err
-	}
-	req.Client = sdk.HttpClient
-	req.SetHeader("User-Agent", sdk.UserAgent)
-	req.SetHeader("Host", "marathon.jd.com")
-
-	req.WriteParam(url.Values{"sku": {skuId}, "num": {skuNum}, "isModifyAddress": {"false"}})
-
-	var initData InitData
-	if err = req.ToJSON(&initData); err != nil {
-		log.Println("GetSeckillInitInfo2", err.Error())
-		return nil, err
-	} else if len(initData.AddressList) == 0 {
-		return nil, errors.New("初始化秒杀信息失败, AddressList为空")
-	}
-	return &initData, nil
-}
-
 // 获取秒杀链接
 func GetKillUrl(skuId string) string {
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://itemko.jd.com/itemShowBtn", url.Values{
@@ -400,9 +378,9 @@ func GetKillUrl(skuId string) string {
 		return ""
 	}
 
-	//https://divide.jd.com/user_routing?skuId=8654289&sn=c3f4ececd8461f0e4d7267e96a91e0e0&from=pc
+	// https://divide.jd.com/user_routing?skuId=8654289&sn=c3f4ececd8461f0e4d7267e96a91e0e0&from=pc
 	url := strings.ReplaceAll(r.Url, "divide", "marathon")
-	//https://marathon.jd.com/captcha.html?skuId=8654289&sn=c3f4ececd8461f0e4d7267e96a91e0e0&from=pc
+	// https://marathon.jd.com/captcha.html?skuId=8654289&sn=c3f4ececd8461f0e4d7267e96a91e0e0&from=pc
 	url = strings.ReplaceAll(url, "user_routing", "captcha.html")
 	return "https" + url
 }
@@ -447,6 +425,29 @@ func SeckillPage(skuId, skuNum string) bool {
 		return true
 	}
 	return false
+}
+
+// 获取秒杀商品信息
+func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
+	req, err := dhttp.NewRequest("https://marathon.jd.com/seckillnew/orderService/pc/init.action", "POST")
+	if err != nil {
+		log.Println("GetSeckillInitInfo1", err.Error())
+		return nil, err
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Host", "marathon.jd.com")
+
+	req.WriteParam(url.Values{"sku": {skuId}, "num": {skuNum}, "isModifyAddress": {"false"}})
+
+	var initData InitData
+	if err = req.ToJSON(&initData); err != nil {
+		log.Println("GetSeckillInitInfo2", err.Error())
+		return nil, err
+	} else if len(initData.AddressList) == 0 {
+		return nil, errors.New("初始化秒杀信息失败, AddressList为空")
+	}
+	return &initData, nil
 }
 
 // 提交订单
@@ -508,6 +509,14 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 
 	req.WriteParam(params)
 
+	// 返回信息
+	// 抢购失败：
+	// {'errorMessage': '很遗憾没有抢到，再接再厉哦。', 'orderId': 0, 'resultCode': 60074, 'skuId': 0, 'success': False}
+	// {'errorMessage': '抱歉，您提交过快，请稍后再提交订单！', 'orderId': 0, 'resultCode': 60017, 'skuId': 0, 'success': False}
+	// {'errorMessage': '系统正在开小差，请重试~~', 'orderId': 0, 'resultCode': 90013, 'skuId': 0, 'success': False}
+	// 抢购成功：
+	// {"appUrl":"xxxxx","orderId":820227xxxxx,"pcUrl":"xxxxx","resultCode":0,"skuId":0,"success":true,"totalMoney":"xxxxx"}
+
 	type Ret struct {
 		Success      bool
 		ErrorMessage string
@@ -525,6 +534,8 @@ func SubmitSeckillOrder(eid, fp, skuId, skuNum, pwd string, initData *InitData) 
 	}
 	if r.Success {
 		log.Println(fmt.Sprintf("抢购成功，订单号:%d, 总价:%f, 电脑端付款链接:%s", r.OrderId, r.TotalMoney, r.PcUrl))
+	} else {
+		log.Println(fmt.Sprintf("抢购失败，ResultCode:%d, ErrorMessage:%s", r.ResultCode, r.ErrorMessage))
 	}
 	return r.Success
 }
