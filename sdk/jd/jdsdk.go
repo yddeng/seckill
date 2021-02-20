@@ -345,6 +345,59 @@ func SuccessSubmitOrder(orderId, areaId string) bool {
 	}
 }
 
+/*  ******* 预约 ****** */
+func GetReserveUrl(skuId string) string {
+	req, err := dhttp.Get(dhttp.BuildURLParams("https://yushou.jd.com/youshouinfo.action", url.Values{
+		"callback": {"fetchJSON"}, "sku": {skuId}, "_": {genTime()},
+	}))
+	if err != nil {
+		log.Println("GetReserveUrl1", err.Error())
+		return ""
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", skuId))
+
+	type Ret struct {
+		Url  string
+		Info string
+	}
+
+	s, _ := req.ToString()
+	log.Println("ss", s)
+	var r Ret
+	if body, err := req.ToString(); err != nil {
+		log.Println("GetReserveUrl2", err.Error())
+		return ""
+	} else if err = json.Unmarshal([]byte(getCallbackStr(body)), &r); err != nil {
+		log.Println("GetReserveUrl3", err.Error())
+		return ""
+	}
+
+	if r.Url == "" {
+		return ""
+	}
+	return "https:" + r.Url
+}
+
+func RequestReserveUrl(reqUrl string) bool {
+	req, err := dhttp.Get(reqUrl)
+	if err != nil {
+		log.Println("RequestReserveUrl", err.Error())
+		return false
+	}
+	req.Client = sdk.HttpClient
+	req.SetHeader("User-Agent", sdk.UserAgent)
+
+	resp, err := req.Do()
+	fmt.Println(err, resp.StatusCode)
+	if err == nil && resp.StatusCode == 200 {
+		defer resp.Body.Close()
+		return true
+	}
+	return false
+}
+
 /* ******* 秒杀 ******** */
 
 // 获取秒杀链接

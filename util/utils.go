@@ -96,6 +96,13 @@ func GetNowTimeMs() int64 {
 	return time.Now().UnixNano() / 1e6
 }
 
+func GetTodayTimeMs(hour, min, sec int) (int64, string) {
+	loc, _ := time.LoadLocation("Local")
+	now := time.Now()
+	nt := time.Date(now.Year(), now.Month(), now.Day(), hour, min, sec, 0, loc)
+	return nt.UnixNano() / 1e6, nt.Format("2006-01-02 15:04:05")
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }

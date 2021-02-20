@@ -78,6 +78,8 @@ func seckillSku(skuId, skuNum string) {
 		killUrl := jd.GetKillUrl(skuId)
 		if killUrl != "" {
 			i <- killUrl
+			jd.RequestKillUrl(skuId, killUrl)
+			jd.SeckillPage(skuId, killUrl)
 			return true
 		}
 		return false
@@ -85,31 +87,7 @@ func seckillSku(skuId, skuNum string) {
 	exitFunc(killUrl)
 	logger.Infoln("Step1 --", killUrl)
 
-	logger.Infoln("Step2 -- 请求秒杀商品链接... ")
-	killUrlReq := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
-		ok := jd.RequestKillUrl(skuId, killUrl.(string))
-		if ok {
-			i <- true
-			return true
-		}
-		return false
-	})
-	exitFunc(killUrlReq)
-	logger.Infoln("Step2 -- OK")
-
-	logger.Infoln("Step3 -- 访问抢购订单结算页面... ")
-	seckillPageReq := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
-		ok := jd.SeckillPage(skuId, killUrl.(string))
-		if ok {
-			i <- true
-			return true
-		}
-		return false
-	})
-	exitFunc(seckillPageReq)
-	logger.Infoln("Step3 -- OK")
-
-	logger.Infoln("Step4 -- 获取秒杀商品初始化信息... ")
+	logger.Infoln("Step2 -- 获取秒杀商品初始化信息... ")
 	initData := util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		initData, err := jd.GetSeckillInitInfo(skuId, skuNum)
 		if err == nil {
@@ -119,14 +97,14 @@ func seckillSku(skuId, skuNum string) {
 		return false
 	})
 	exitFunc(initData)
-	logger.Infoln("Step4 --", initData)
+	logger.Infoln("Step2 --", initData)
 
-	logger.Infoln("Step5 -- 提交秒杀商品订单... ")
+	logger.Infoln("Step3 -- 提交秒杀商品订单... ")
 	util.WaitGoLoop(goNum, endTime, func(i chan interface{}) bool {
 		jd.SubmitSeckillOrder(config.EId, config.Fp, skuId, skuNum, config.PWD, initData.(*jd.InitData))
 		return false
 	})
-	logger.Infoln("Step5 -- OK")
+	logger.Infoln("Step3 -- OK")
 
 	logger.Infoln("All Steps OK")
 }
@@ -145,12 +123,25 @@ func getDiffTimeMs() int64 {
 
 func Seckill() {
 
+	// 时间判断
+	buyTimeMs, buyTimeStr := util.GetTodayTimeMs(12, 0, 0)
+	if util.GetNowTimeMs() > buyTimeMs {
+		logger.Infoln("抢购时间已过，明天再来")
+		return
+	}
+
 	if !cookieLogin() && !login() {
 		logger.Infoln("用户登陆失败！！")
 		return
 	}
 
-	buyTimeMs, buyTimeStr := GetBuyTimeMs()
+	// 预约
+	//reserveTimeMs, _ := util.GetTodayTimeMs(10, 0, 0)
+	//if nowTimeMs < reserveTimeMs {
+	//	time.Sleep(time.Duration(reserveTimeMs-nowTimeMs+60*1000) * time.Millisecond)
+	//
+	//}
+
 	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
 		logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", buyTimeStr))

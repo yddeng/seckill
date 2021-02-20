@@ -86,3 +86,12 @@ func TestSubmitSeckillOrder(t *testing.T) {
 	ok := SubmitSeckillOrder("eid", "fp", "skuId", "skuNum", "pwd", initData)
 	fmt.Println("submit", ok)
 }
+
+// 预约
+func TestGetReserveUrl(t *testing.T) {
+	url := GetReserveUrl("100012043978")
+	fmt.Println(url)
+	if url != "" {
+		fmt.Println(RequestReserveUrl(url))
+	}
+}
