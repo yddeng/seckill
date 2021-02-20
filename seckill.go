@@ -151,10 +151,10 @@ func Seckill() {
 		return
 	}
 
-	buyTimeMs := config.GetBuyTimeMs()
+	buyTimeMs, buyTimeStr := GetBuyTimeMs()
 	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
-		logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", config.BuyTime))
+		logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，将在开始前60s唤醒", buyTimeStr))
 		time.Sleep(time.Millisecond * time.Duration(buyTimeMs-util.GetNowTimeMs()-60*1000))
 		// 检查过期
 		if !jd.ValidCookie() {
@@ -164,7 +164,7 @@ func Seckill() {
 	}
 
 	diffTime := getDiffTimeMs()
-	logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", config.BuyTime, diffTime))
+	logger.Infoln(fmt.Sprintf("等待到达抢购时间:%s，检测本地时间与京东服务器时间误差为【%d】毫秒", buyTimeStr, diffTime))
 	// 提前500毫秒执行
 	time.Sleep(time.Duration(buyTimeMs-diffTime-util.GetNowTimeMs()-500) * time.Millisecond)
 

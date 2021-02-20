@@ -10,7 +10,7 @@ func TestLoadConfig(t *testing.T) {
 	_ = LoadConfig("./config.toml")
 }
 
-func TestConfig_GetBuyTimeMs(t *testing.T) {
-	_ = LoadConfig("./config.toml")
-	fmt.Println(time.Now().UnixNano()/1e6, config.GetBuyTimeMs())
+func TestGetBuyTimeMs(t *testing.T) {
+	buyTimeMs, buyTimeStr := GetBuyTimeMs()
+	fmt.Println(time.Now().UnixNano()/1e6, buyTimeMs, buyTimeStr)
 }

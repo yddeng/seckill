@@ -23,8 +23,8 @@ func TestSeckillSku(t *testing.T) {
 func TestDiffTime(t *testing.T) {
 	LoadConfig("./config.toml")
 	diffTime := getDiffTimeMs()
-	buyTimeMs := config.GetBuyTimeMs()
-	fmt.Println(config.BuyTime, buyTimeMs, util.GetNowTimeMs(), diffTime)
+	buyTimeMs, buyTimeStr := GetBuyTimeMs()
+	fmt.Println(buyTimeStr, buyTimeMs, util.GetNowTimeMs(), diffTime)
 	time.Sleep(time.Duration(buyTimeMs-util.GetNowTimeMs()-diffTime) * time.Millisecond)
 	fmt.Println(time.Now().UnixNano()/1e6, time.Now().String())
 }
