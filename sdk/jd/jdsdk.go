@@ -32,7 +32,7 @@ func getCallbackStr(text string) string {
 
 // 登录页面
 func LoginPage() {
-	req, _ := dhttp.Get("https://passport.jd.com/new/loggerin.aspx")
+	req, _ := dhttp.Get("https://passport.jd.com/new/login.aspx")
 	req.DoEnd()
 }
 
@@ -48,7 +48,7 @@ func QrLoginImage(filename string) string {
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
-	req.SetHeader("Referer", "https://passport.jd.com/new/loggerin.aspx")
+	req.SetHeader("Referer", "https://passport.jd.com/new/login.aspx")
 	if err = req.ToFile(filename); err != nil {
 		log.Println("QrLoginImage2", err.Error())
 		return ""
@@ -68,7 +68,7 @@ func QrcodeTicket(token string) string {
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
-	req.SetHeader("Referer", "https://passport.jd.com/new/loggerin.aspx")
+	req.SetHeader("Referer", "https://passport.jd.com/new/login.aspx")
 
 	type Ret struct {
 		Code   int
@@ -103,7 +103,7 @@ func ValidQRTicket(ticket string) bool {
 	}
 	req.Client = sdk.HttpClient
 	req.SetHeader("User-Agent", sdk.UserAgent)
-	req.SetHeader("Referer", "https://passport.jd.com/uc/loggerin?ltype=loggerout")
+	req.SetHeader("Referer", "https://passport.jd.com/uc/login?ltype=logout")
 
 	type Ret struct {
 		ReturnCode int

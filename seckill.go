@@ -7,7 +7,6 @@ import (
 	"github.com/yddeng/seckill/util"
 	"os"
 	"runtime"
-	"teacher/node/common/logger"
 	"time"
 )
 
@@ -26,7 +25,7 @@ func cookieLogin() bool {
 	return false
 }
 
-func loggerin() bool {
+func login() bool {
 	logger.Infoln("用户登陆流程...")
 	// 二维码
 	token := ""
@@ -146,7 +145,7 @@ func getDiffTimeMs() int64 {
 
 func Seckill() {
 
-	if !cookieLogin() && !loggerin() {
+	if !cookieLogin() && !login() {
 		logger.Infoln("用户登陆失败！！")
 		return
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	fmt.Println(loggerin())
+	fmt.Println(login())
 }
 
 func TestCookieLogin(t *testing.T) {
