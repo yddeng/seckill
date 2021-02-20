@@ -390,11 +390,11 @@ func RequestReserveUrl(reqUrl string) bool {
 	req.SetHeader("User-Agent", sdk.UserAgent)
 
 	resp, err := req.Do()
-	fmt.Println(err, resp.StatusCode)
 	if err == nil && resp.StatusCode == 200 {
 		defer resp.Body.Close()
 		return true
 	}
+	log.Println("RequestReserveUrl2", err, resp.StatusCode)
 	return false
 }
 
@@ -455,11 +455,12 @@ func RequestKillUrl(skuId, killUrl string) bool {
 		defer resp.Body.Close()
 		return true
 	}
+	log.Println("RequestKillUrl2", err, resp.StatusCode)
 	return false
 }
 
 // 访问抢购订单结算页面
-func SeckillPage(skuId, skuNum string) bool {
+func RequestSeckillPage(skuId, skuNum string) bool {
 	req, err := dhttp.Get(dhttp.BuildURLParams("https://marathon.jd.com/seckill/seckill.action", url.Values{
 		"sku": {skuId}, "num": {skuNum}, "rid": {genTime()},
 	}))
@@ -477,6 +478,7 @@ func SeckillPage(skuId, skuNum string) bool {
 		defer resp.Body.Close()
 		return true
 	}
+	log.Println("RequestSeckillPage2", err, resp.StatusCode)
 	return false
 }
 
