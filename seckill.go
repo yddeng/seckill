@@ -80,7 +80,7 @@ func seckillSku(skuId, skuNum string) {
 			i <- killUrl
 			util.Go(1, func(i int) {
 				jd.RequestKillUrl(skuId, killUrl)
-				jd.RequestSeckillPage(skuId, killUrl)
+				jd.RequestSeckillPage(skuId, skuNum)
 			})
 			return true
 		}
