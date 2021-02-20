@@ -1,0 +1,85 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005",
+			"revisionTime": "2018-08-15T10:47:33Z"
+		},
+		{
+			"checksumSHA1": "Weug48tzX5BoAXoefCetGTtU8pA=",
+			"path": "github.com/PuerkitoBio/goquery",
+			"revision": "56ba1e6f0884475d2d9e4c68ec0487351e069335",
+			"revisionTime": "2019-12-09T20:00:45Z"
+		},
+		{
+			"checksumSHA1": "d3d+KREQekYlvzdk3GbEI0NZo20=",
+			"path": "github.com/andybalholm/cascadia",
+			"revision": "903109d295d56a99095f2cfab0c2ca8d4b22f648",
+			"revisionTime": "2019-11-15T16:53:31Z"
+		},
+		{
+			"checksumSHA1": "LYkByE2UG5aZ+0KUxWGTNiVSlW8=",
+			"path": "github.com/vdobler/ht/cookiejar",
+			"revision": "39624426aab937a68ebc9c82a1cab74d7a0d3d24",
+			"revisionTime": "2018-10-24T20:41:00Z"
+		},
+		{
+			"checksumSHA1": "OPPZ12gK7B36HBmpIBBghZlUTus=",
+			"path": "github.com/yddeng/dnet/dhttp",
+			"revision": "b51c20ee4b727e4ccf67e421f2b9107fd3f67489",
+			"revisionTime": "2021-02-04T01:27:03Z"
+		},
+		{
+			"checksumSHA1": "aMNoNqpqK4LXpgNq9mJOBpdw7hA=",
+			"path": "github.com/yddeng/dutil/log",
+			"revision": "c7b0a61903e8ff867a58c99ac8f78729226e4df0",
+			"revisionTime": "2021-02-02T02:13:10Z"
+		},
+		{
+			"checksumSHA1": "bONEZcbkYKiPyABrecOLzHomjPU=",
+			"path": "golang.org/x/net/html",
+			"revision": "ba9fcec4b297b415637633c5a6e8fa592e4a16c3",
+			"revisionTime": "2019-08-26T16:14:39Z"
+		},
+		{
+			"checksumSHA1": "XtSbs1gpyaEsIqf6VRhJsgOQe5U=",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "ba9fcec4b297b415637633c5a6e8fa592e4a16c3",
+			"revisionTime": "2019-08-26T16:14:39Z"
+		},
+		{
+			"checksumSHA1": "tqqo7DEeFCclb58XbN44WwdpWww=",
+			"path": "golang.org/x/text/encoding",
+			"revision": "06d492aade888ab8698aad35476286b7b555c961",
+			"revisionTime": "2020-02-26T17:37:29Z"
+		},
+		{
+			"checksumSHA1": "zeHyHebIZl1tGuwGllIhjfci+wI=",
+			"path": "golang.org/x/text/encoding/internal",
+			"revision": "06d492aade888ab8698aad35476286b7b555c961",
+			"revisionTime": "2020-02-26T17:37:29Z"
+		},
+		{
+			"checksumSHA1": "46UIK1h/DTupMdRnLkijrEIwzv4=",
+			"path": "golang.org/x/text/encoding/internal/identifier",
+			"revision": "06d492aade888ab8698aad35476286b7b555c961",
+			"revisionTime": "2020-02-26T17:37:29Z"
+		},
+		{
+			"checksumSHA1": "55UdScb+EMOCPr7OW0hCwDsVxpg=",
+			"path": "golang.org/x/text/encoding/simplifiedchinese",
+			"revision": "06d492aade888ab8698aad35476286b7b555c961",
+			"revisionTime": "2020-02-26T17:37:29Z"
+		},
+		{
+			"checksumSHA1": "R9iBDY+aPnT+8pyRcqGjXq5QixA=",
+			"path": "golang.org/x/text/transform",
+			"revision": "06d492aade888ab8698aad35476286b7b555c961",
+			"revisionTime": "2020-02-26T17:37:29Z"
+		}
+	],
+	"rootPath": "github.com/yddeng/seckill"
+}
