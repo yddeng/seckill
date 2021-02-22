@@ -138,11 +138,22 @@ func Seckill() {
 	}
 
 	// 预约
-	//reserveTimeMs, _ := util.GetTodayTimeMs(10, 0, 0)
-	//if nowTimeMs < reserveTimeMs {
-	//	time.Sleep(time.Duration(reserveTimeMs-nowTimeMs+60*1000) * time.Millisecond)
-	//
-	//}
+	reserveTimeMs, reserveTimeStr := util.GetTodayTimeMs(10, 0, 0)
+	if util.GetNowTimeMs() < reserveTimeMs {
+		// 预约时间 1分钟后
+		logger.Infoln(fmt.Sprintf("等待到达预约时间:%s，将在预约时间后60s唤醒", reserveTimeStr))
+		time.Sleep(time.Duration(reserveTimeMs-util.GetNowTimeMs()+60*1000) * time.Millisecond)
+	}
+
+	util.Go(1, func(i int) {
+		util.LoopFunc(func() bool {
+			reserveUrl := jd.GetReserveUrl(config.SkuId)
+			if reserveUrl != "" {
+				jd.RequestReserveUrl(reserveUrl)
+			}
+			return reserveUrl != ""
+		}, time.Second)
+	})
 
 	if buyTimeMs-util.GetNowTimeMs() > 60*1000 {
 		// 提前60s唤醒
