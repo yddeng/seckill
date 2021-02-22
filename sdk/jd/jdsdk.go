@@ -172,11 +172,12 @@ func ValidCookie() bool {
 	req.SetHeader("User-Agent", sdk.UserAgent)
 
 	resp, err := req.Do()
-	if err == nil && resp.StatusCode == 200 {
+	if err != nil {
+		return false
+	} else {
 		defer resp.Body.Close()
-		return true
+		return resp.StatusCode == 200
 	}
-	return false
 }
 
 /* *********** * ************* */
@@ -363,8 +364,6 @@ func GetReserveUrl(skuId string) string {
 		Info string
 	}
 
-	s, _ := req.ToString()
-	log.Println("ss", s)
 	var r Ret
 	if body, err := req.ToString(); err != nil {
 		log.Println("GetReserveUrl2", err.Error())
@@ -390,12 +389,12 @@ func RequestReserveUrl(reqUrl string) bool {
 	req.SetHeader("User-Agent", sdk.UserAgent)
 
 	resp, err := req.Do()
-	if err == nil && resp.StatusCode == 200 {
+	if err != nil {
+		return false
+	} else {
 		defer resp.Body.Close()
-		return true
+		return resp.StatusCode == 200
 	}
-	log.Println("RequestReserveUrl2", err, resp.StatusCode)
-	return false
 }
 
 /* ******* 秒杀 ******** */
@@ -451,12 +450,14 @@ func RequestKillUrl(skuId, killUrl string) bool {
 	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", skuId))
 
 	resp, err := req.Do()
-	if err == nil && resp.StatusCode == 200 {
+	if err != nil {
+		log.Println("RequestKillUrl2", err)
+		return false
+	} else {
 		defer resp.Body.Close()
-		return true
+		log.Println("RequestKillUrl3", resp.StatusCode)
+		return resp.StatusCode == 200
 	}
-	log.Println("RequestKillUrl2", err, resp.StatusCode)
-	return false
 }
 
 // 访问抢购订单结算页面
@@ -474,12 +475,14 @@ func RequestSeckillPage(skuId, skuNum string) bool {
 	req.SetHeader("Referer", fmt.Sprintf("https://item.jd.com/%s.html", skuId))
 
 	resp, err := req.Do()
-	if err == nil && resp.StatusCode == 200 {
+	if err != nil {
+		log.Println("RequestSeckillPage2", err)
+		return false
+	} else {
 		defer resp.Body.Close()
-		return true
+		log.Println("RequestSeckillPage3", resp.StatusCode)
+		return resp.StatusCode == 200
 	}
-	log.Println("RequestSeckillPage2", err, resp.StatusCode)
-	return false
 }
 
 // 获取秒杀商品信息
