@@ -2,6 +2,7 @@ package seckill
 
 import (
 	"fmt"
+	"github.com/yddeng/dutil"
 	"github.com/yddeng/seckill/sdk"
 	"github.com/yddeng/seckill/sdk/jd"
 	"github.com/yddeng/seckill/util"
@@ -79,6 +80,12 @@ func seckillSku(skuId, skuNum string) {
 		if killUrl != "" {
 			i <- killUrl
 			util.Go(1, func(i int) {
+				defer func() {
+					err := dutil.Recover()
+					if err != nil {
+						logger.Errorln(err)
+					}
+				}()
 				jd.RequestKillUrl(skuId, killUrl)
 				jd.RequestSeckillPage(skuId, skuNum)
 			})
@@ -146,12 +153,20 @@ func Seckill() {
 	}
 
 	util.Go(1, func(i int) {
-		util.LoopFunc(func() bool {
+		util.LoopFunc(func() (ok bool) {
+			defer func() {
+				err := dutil.Recover()
+				if err != nil {
+					logger.Errorln(err)
+					ok = true
+				}
+			}()
 			reserveUrl := jd.GetReserveUrl(config.SkuId)
-			if reserveUrl != "" {
+			ok = reserveUrl != ""
+			if ok {
 				jd.RequestReserveUrl(reserveUrl)
 			}
-			return reserveUrl != ""
+			return
 		}, time.Second)
 	})
 
