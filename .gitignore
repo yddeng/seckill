@@ -17,5 +17,7 @@
 log/
 *.log
 
+bin/
+
 qr_code.png
 my.cookies
