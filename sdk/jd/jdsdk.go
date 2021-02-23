@@ -500,7 +500,8 @@ func GetSeckillInitInfo(skuId, skuNum string) (*InitData, error) {
 
 	var initData InitData
 	if err = req.ToJSON(&initData); err != nil {
-		log.Println("GetSeckillInitInfo2", err.Error())
+		str, _ := req.ToString()
+		log.Println("GetSeckillInitInfo2", err.Error(), str)
 		return nil, err
 	} else if len(initData.AddressList) == 0 {
 		return nil, errors.New("初始化秒杀信息失败, AddressList为空")
